@@ -19,6 +19,11 @@ class Unit:
     move_range: int
     x: int
     y: int
+    skill_used: bool = False
+
+    @property
+    def symbol(self) -> str:
+        return "S" if self.unit_type == UnitType.SCOUT else "B"
 
     @classmethod
     def spawn(cls, owner_id: str, unit_type: UnitType, x: int, y: int) -> "Unit":
@@ -53,7 +58,8 @@ class GameRoom:
 
     width: int = 5
     height: int = 5
-    max_turns: int = 20
+    max_turns: int = 12
+    target_score: int = 6
 
     def __init__(self, room_id: str, player_a: str, player_b: str):
         self.room_id = room_id
@@ -63,7 +69,7 @@ class GameRoom:
             player_b: PlayerState(player_id=player_b),
         }
         self.pending_actions: Dict[str, PlayerAction] = {}
-        self.control_points: List[Tuple[int, int]] = [(2, 2)]
+        self.control_points: List[Tuple[int, int]] = [(2, 2), (1, 3), (3, 1)]
         self.score: Dict[str, int] = {player_a: 0, player_b: 0}
 
         self.players[player_a].units = [
@@ -78,32 +84,40 @@ class GameRoom:
     def submit_action(self, action: PlayerAction) -> None:
         if action.player_id not in self.players:
             raise ValueError("unknown player")
+        if action.unit_index < 0:
+            raise ValueError("unit index must be >= 0")
         self.pending_actions[action.player_id] = action
 
     def ready_to_resolve(self) -> bool:
-        return len(self.pending_actions) == 2
+        return len(self.pending_actions) == len(self.players)
 
     def resolve_turn(self) -> TurnResult:
         if not self.ready_to_resolve():
-            raise RuntimeError("both players must submit action")
+            raise RuntimeError("all players must submit action")
 
-        events: List[str] = []
+        events: List[str] = [f"turn {self.turn} resolve"]
         for player_id, action in self.pending_actions.items():
             actor = self.players[player_id]
             if action.unit_index >= len(actor.units):
                 events.append(f"{player_id} invalid unit index, skipped")
                 continue
+
             unit = actor.units[action.unit_index]
             dist = abs(unit.x - action.target_x) + abs(unit.y - action.target_y)
             if dist <= unit.move_range and self._inside(action.target_x, action.target_y):
                 unit.x, unit.y = action.target_x, action.target_y
-                events.append(f"{player_id} moved {unit.unit_type} to {(unit.x, unit.y)}")
+                events.append(f"{player_id} moved {unit.unit_type.value} to {(unit.x, unit.y)}")
+            else:
+                events.append(f"{player_id} failed move")
 
-            enemy = self._enemy_player(player_id)
-            target = self._unit_at(enemy, unit.x, unit.y)
+            enemy_id = self._enemy_player(player_id)
+            target = self._unit_at(enemy_id, unit.x, unit.y)
             if target is not None:
-                damage = unit.attack + (1 if action.use_skill else 0)
+                bonus = 1 if action.use_skill and not unit.skill_used else 0
+                damage = unit.attack + bonus
                 target.hp -= damage
+                if bonus:
+                    unit.skill_used = True
                 events.append(f"{player_id} hit enemy for {damage} damage")
 
         self._cleanup_dead_units(events)
@@ -113,6 +127,15 @@ class GameRoom:
         self.pending_actions.clear()
 
         return TurnResult(events=events, winner=winner)
+
+    def legal_moves(self, player_id: str, unit_index: int) -> List[Tuple[int, int]]:
+        unit = self.players[player_id].units[unit_index]
+        moves: List[Tuple[int, int]] = []
+        for x in range(self.width):
+            for y in range(self.height):
+                if abs(unit.x - x) + abs(unit.y - y) <= unit.move_range:
+                    moves.append((x, y))
+        return moves
 
     def _inside(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
@@ -135,18 +158,21 @@ class GameRoom:
 
     def _score_control_points(self, events: List[str]) -> None:
         for point in self.control_points:
-            owners = []
+            owners: List[str] = []
             for player_id, state in self.players.items():
                 if any((u.x, u.y) == point for u in state.units):
                     owners.append(player_id)
             if len(owners) == 1:
                 self.score[owners[0]] += 1
-                events.append(f"{owners[0]} captured control point {point}")
+                events.append(f"{owners[0]} captured point {point} (+1)")
 
     def _winner(self) -> Optional[str]:
         living = [pid for pid, s in self.players.items() if s.units]
         if len(living) == 1:
             return living[0]
+        for pid, points in self.score.items():
+            if points >= self.target_score:
+                return pid
         if self.turn >= self.max_turns:
             return max(self.score, key=self.score.get)
         return None
@@ -156,6 +182,7 @@ class GameRoom:
             "room_id": self.room_id,
             "turn": self.turn,
             "score": self.score,
+            "control_points": self.control_points,
             "players": {
                 pid: [
                     {
@@ -163,6 +190,7 @@ class GameRoom:
                         "hp": u.hp,
                         "atk": u.attack,
                         "pos": [u.x, u.y],
+                        "skill_used": u.skill_used,
                     }
                     for u in state.units
                 ]
