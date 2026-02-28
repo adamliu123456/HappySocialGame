@@ -8,28 +8,69 @@
   </head>
   <body>
     <main class="container">
-      <h1>HappySocialGame - H5 可玩版</h1>
-      <p class="subtitle">回合制占点对战：你 vs 机器人（点击棋盘移动）</p>
+      <header class="topbar panel">
+        <div>
+          <h1>HappySocialGame · 清新社交对战</h1>
+          <p class="subtitle">轻竞技、快节奏、可互动 —— 3 分钟就能打完一局</p>
+        </div>
+        <div class="badges">
+          <span class="badge">赛季 S0</span>
+          <span class="badge">双人匹配</span>
+          <span class="badge accent" id="phaseBadge">开局阶段</span>
+        </div>
+      </header>
 
-      <section class="hud">
-        <div id="score">比分: 你 0 - 0 机器人</div>
-        <div id="turn">回合: 1 / 12</div>
-        <div id="status">状态: 选择一个你的单位，再点击目标格。</div>
-      </section>
+      <section class="layout">
+        <div class="main-col">
+          <section class="hud panel">
+            <div id="score">比分: 你 0 - 0 机器人</div>
+            <div id="turn">回合: 1 / 12</div>
+            <div id="tempo">节奏值: 你 0 - 0 机器人</div>
+            <div id="status">状态: 选择一个你的单位，再点击目标格。</div>
+          </section>
 
-      <section class="board-wrap">
-        <canvas id="board" width="500" height="500" aria-label="game board"></canvas>
-      </section>
+          <section class="board-wrap panel">
+            <canvas id="board" width="500" height="500" aria-label="game board"></canvas>
+          </section>
 
-      <section class="controls">
-        <button id="toggleSkill">技能加伤: 关闭</button>
-        <button id="endTurn">确认行动并结束回合</button>
-        <button id="restart">重新开始</button>
-      </section>
+          <section class="controls panel">
+            <button id="toggleSkill">技能加伤: 关闭</button>
+            <button id="endTurn">确认行动并结束回合</button>
+            <button id="restart">重新开始</button>
+          </section>
 
-      <section>
-        <h3>事件日志</h3>
-        <ul id="events"></ul>
+          <section class="panel">
+            <h3>事件日志</h3>
+            <ul id="events"></ul>
+          </section>
+        </div>
+
+        <aside class="side-col">
+          <section class="panel roster">
+            <h3>队伍状态</h3>
+            <div id="youRoster"></div>
+            <div id="botRoster"></div>
+          </section>
+
+          <section class="panel">
+            <h3>快速互动</h3>
+            <div class="emotes">
+              <button class="emote" data-emote="Nice Move!">👏 漂亮</button>
+              <button class="emote" data-emote="GG">🤝 GG</button>
+              <button class="emote" data-emote="So Close!">🔥 差一点</button>
+              <button class="emote" data-emote="Let us go!">⚡ 冲鸭</button>
+            </div>
+          </section>
+
+          <section class="panel mission">
+            <h3>今日目标</h3>
+            <ul>
+              <li>占领任意据点 3 次</li>
+              <li>使用技能加伤 2 次</li>
+              <li>发送一次互动表情</li>
+            </ul>
+          </section>
+        </aside>
       </section>
     </main>
 

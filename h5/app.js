@@ -18,6 +18,7 @@ function newState() {
     turn: 1,
     winner: null,
     score: { you: 0, bot: 0 },
+    tempo: { you: 0, bot: 0 },
     players: {
       you: [createUnit('you', 'scout', 0, 0), createUnit('you', 'bruiser', 0, 1)],
       bot: [createUnit('bot', 'scout', 4, 4), createUnit('bot', 'bruiser', 4, 3)],
@@ -34,9 +35,13 @@ const board = document.getElementById('board');
 const ctx = board.getContext('2d');
 const scoreEl = document.getElementById('score');
 const turnEl = document.getElementById('turn');
+const tempoEl = document.getElementById('tempo');
 const statusEl = document.getElementById('status');
 const eventsEl = document.getElementById('events');
 const skillBtn = document.getElementById('toggleSkill');
+const phaseBadgeEl = document.getElementById('phaseBadge');
+const youRosterEl = document.getElementById('youRoster');
+const botRosterEl = document.getElementById('botRoster');
 
 function dist(a, b, x, y) {
   return Math.abs(a - x) + Math.abs(b - y);
@@ -62,68 +67,96 @@ function enemy(owner) {
 
 function addEvent(text, cls = '') {
   state.events.unshift({ text, cls });
-  state.events = state.events.slice(0, 16);
+  state.events = state.events.slice(0, 18);
+}
+
+function phaseText() {
+  if (state.turn <= 4) return '开局阶段';
+  if (state.turn <= 8) return '中盘阶段';
+  return '终局冲刺';
+}
+
+function drawBoardTiles() {
+  for (let x = 0; x < SIZE; x += 1) {
+    for (let y = 0; y < SIZE; y += 1) {
+      ctx.fillStyle = (x + y) % 2 === 0 ? '#f5fcff' : '#e8f5fc';
+      ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+      ctx.strokeStyle = '#b8ddf4';
+      ctx.strokeRect(x * TILE, y * TILE, TILE, TILE);
+    }
+  }
+}
+
+function drawControlPoints() {
+  for (const [x, y] of CONTROL_POINTS) {
+    const cx = x * TILE + TILE / 2;
+    const cy = y * TILE + TILE / 2;
+    ctx.fillStyle = '#6adf9d';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#2f8f5f';
+    ctx.stroke();
+  }
 }
 
 function draw() {
   ctx.clearRect(0, 0, board.width, board.height);
-
-  for (let x = 0; x < SIZE; x += 1) {
-    for (let y = 0; y < SIZE; y += 1) {
-      ctx.fillStyle = (x + y) % 2 === 0 ? '#1a2140' : '#141a33';
-      ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
-      ctx.strokeStyle = '#33407a';
-      ctx.strokeRect(x * TILE, y * TILE, TILE, TILE);
-    }
-  }
-
-  for (const [x, y] of CONTROL_POINTS) {
-    ctx.fillStyle = '#3cc07c';
-    ctx.beginPath();
-    ctx.arc(x * TILE + TILE / 2, y * TILE + TILE / 2, 12, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (state.selectedTarget) {
-    const [x, y] = state.selectedTarget;
-    ctx.strokeStyle = '#ffd66e';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(x * TILE + 4, y * TILE + 4, TILE - 8, TILE - 8);
-    ctx.lineWidth = 1;
-  }
-
-  for (const unit of state.players.you) drawUnit(unit, '#58b7ff');
-  for (const unit of state.players.bot) drawUnit(unit, '#ff8c66');
+  drawBoardTiles();
+  drawControlPoints();
 
   if (state.selectedUnit != null) {
     const unit = state.players.you[state.selectedUnit];
     if (unit) {
       const moves = legalMoves(unit);
-      ctx.fillStyle = 'rgba(255,255,255,0.13)';
-      for (const [mx, my] of moves) ctx.fillRect(mx * TILE + 2, my * TILE + 2, TILE - 4, TILE - 4);
-      drawUnit(unit, '#8fd2ff');
+      ctx.fillStyle = 'rgba(78, 167, 255, 0.15)';
+      for (const [mx, my] of moves) ctx.fillRect(mx * TILE + 5, my * TILE + 5, TILE - 10, TILE - 10);
     }
   }
 
+  if (state.selectedTarget) {
+    const [x, y] = state.selectedTarget;
+    ctx.strokeStyle = '#ffcf5c';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(x * TILE + 5, y * TILE + 5, TILE - 10, TILE - 10);
+    ctx.lineWidth = 1;
+  }
+
+  for (const unit of state.players.you) drawUnit(unit, '#4ea7ff');
+  for (const unit of state.players.bot) drawUnit(unit, '#ff9368');
+
   scoreEl.textContent = `比分: 你 ${state.score.you} - ${state.score.bot} 机器人`;
   turnEl.textContent = `回合: ${Math.min(state.turn, MAX_TURNS)} / ${MAX_TURNS}`;
+  tempoEl.textContent = `节奏值: 你 ${state.tempo.you} - ${state.tempo.bot} 机器人（3 点触发本回合 +1 伤害）`;
+  phaseBadgeEl.textContent = phaseText();
   renderEvents();
+  renderRosters();
 }
 
 function drawUnit(unit, color) {
   const cx = unit.x * TILE + TILE / 2;
   const cy = unit.y * TILE + TILE / 2;
+
   ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 24, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#0f1220';
-  ctx.font = 'bold 14px sans-serif';
+  if (unit.type === 'scout') {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 28);
+    ctx.lineTo(cx + 26, cy + 20);
+    ctx.lineTo(cx - 26, cy + 20);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    ctx.fillRect(cx - 24, cy - 24, 48, 48);
+  }
+
+  ctx.fillStyle = '#13344a';
+  ctx.font = 'bold 13px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(unit.type[0].toUpperCase(), cx, cy + 5);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillText(unit.type === 'scout' ? '侦' : '卫', cx, cy + 4);
+
+  ctx.fillStyle = '#0f2a3e';
   ctx.font = '12px sans-serif';
-  ctx.fillText(String(unit.hp), cx, cy - 30);
+  ctx.fillText(`HP ${unit.hp}`, cx, cy - 33);
 }
 
 function resolveOneAction(owner, unitIndex, tx, ty, useSkill) {
@@ -136,19 +169,24 @@ function resolveOneAction(owner, unitIndex, tx, ty, useSkill) {
   if (dist(actor.x, actor.y, tx, ty) <= actor.move) {
     actor.x = tx;
     actor.y = ty;
-    addEvent(`${owner} 移动到 (${tx}, ${ty})`, owner);
+    addEvent(`${owner === 'you' ? '你' : '机器人'}移动到 (${tx}, ${ty})`, owner);
   } else {
-    addEvent(`${owner} 移动失败`, owner);
+    addEvent(`${owner === 'you' ? '你' : '机器人'}移动失败`, owner);
   }
 
   const enemyId = enemy(owner);
   const target = unitAt(enemyId, actor.x, actor.y);
   if (target) {
-    const bonus = useSkill && !actor.skillUsed ? 1 : 0;
-    const damage = actor.attack + bonus;
+    const tempoBonus = state.tempo[owner] >= 3 ? 1 : 0;
+    const skillBonus = useSkill && !actor.skillUsed ? 1 : 0;
+    const damage = actor.attack + skillBonus + tempoBonus;
     target.hp -= damage;
-    if (bonus) actor.skillUsed = true;
-    addEvent(`${owner} 造成 ${damage} 伤害`, owner);
+    if (skillBonus) actor.skillUsed = true;
+    if (tempoBonus) {
+      state.tempo[owner] = 0;
+      addEvent(`${owner === 'you' ? '你' : '机器人'}触发节奏爆发 +1 伤害`, owner);
+    }
+    addEvent(`${owner === 'you' ? '你' : '机器人'}造成 ${damage} 伤害`, owner);
   }
 }
 
@@ -157,7 +195,7 @@ function cleanupDead() {
     const before = state.players[pid].length;
     state.players[pid] = state.players[pid].filter((u) => u.hp > 0);
     const dead = before - state.players[pid].length;
-    if (dead > 0) addEvent(`${pid} 损失 ${dead} 个单位`, pid);
+    if (dead > 0) addEvent(`${pid === 'you' ? '你' : '机器人'}损失 ${dead} 个单位`, pid);
   }
 }
 
@@ -167,11 +205,13 @@ function scorePoints() {
     const botHold = !!unitAt('bot', x, y);
     if (youHold && !botHold) {
       state.score.you += 1;
-      addEvent(`你占领据点 (${x}, ${y}) +1`, 'player');
+      state.tempo.you += 1;
+      addEvent(`你占领据点 (${x}, ${y}) +1，节奏值+1`, 'player');
     }
     if (botHold && !youHold) {
       state.score.bot += 1;
-      addEvent(`机器人占领据点 (${x}, ${y}) +1`, 'bot');
+      state.tempo.bot += 1;
+      addEvent(`机器人占领据点 (${x}, ${y}) +1，节奏值+1`, 'bot');
     }
   }
 }
@@ -198,7 +238,7 @@ function botAction() {
       let score = 0;
       if (CONTROL_POINTS.some(([cx, cy]) => cx === tx && cy === ty)) score += 6;
       state.players.you.forEach((e) => {
-        if (e.x === tx && e.y === ty) score += 7;
+        if (e.x === tx && e.y === ty) score += 8;
         score += Math.max(0, 3 - dist(e.x, e.y, tx, ty));
       });
       if (!best || score > best.score) {
@@ -219,6 +259,17 @@ function renderEvents() {
   });
 }
 
+function renderRosters() {
+  const render = (root, title, units, cls) => {
+    const cards = units
+      .map((u, idx) => `<div class="roster-card ${cls}">#${idx + 1} ${u.type === 'scout' ? '侦察' : '重卫'} · HP ${u.hp} · ATK ${u.attack}</div>`)
+      .join('');
+    root.innerHTML = `<h4 class="roster-title">${title}</h4>${cards || '<div class="roster-card">全灭</div>'}`;
+  };
+  render(youRosterEl, '你的队伍', state.players.you, 'player');
+  render(botRosterEl, '对手队伍', state.players.bot, 'bot');
+}
+
 board.addEventListener('click', (ev) => {
   if (state.winner) return;
   const rect = board.getBoundingClientRect();
@@ -229,7 +280,7 @@ board.addEventListener('click', (ev) => {
   if (unitIndex >= 0) {
     state.selectedUnit = unitIndex;
     state.selectedTarget = [x, y];
-    statusEl.textContent = `状态: 已选择单位 ${unitIndex}，请点击目标格。`;
+    statusEl.textContent = `状态: 已选择单位 ${unitIndex + 1}，请点击目标格。`;
     draw();
     return;
   }
@@ -239,6 +290,13 @@ board.addEventListener('click', (ev) => {
     statusEl.textContent = `状态: 目标已选择 (${x}, ${y})，点击“确认行动并结束回合”。`;
     draw();
   }
+});
+
+document.querySelectorAll('.emote').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    addEvent(`你发送互动：${btn.dataset.emote}`, 'player');
+    draw();
+  });
 });
 
 document.getElementById('toggleSkill').addEventListener('click', () => {
