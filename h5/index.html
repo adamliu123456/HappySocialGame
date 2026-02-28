@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HappySocialGame H5 MVP</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>HappySocialGame - H5 可玩版</h1>
+      <p class="subtitle">回合制占点对战：你 vs 机器人（点击棋盘移动）</p>
+
+      <section class="hud">
+        <div id="score">比分: 你 0 - 0 机器人</div>
+        <div id="turn">回合: 1 / 12</div>
+        <div id="status">状态: 选择一个你的单位，再点击目标格。</div>
+      </section>
+
+      <section class="board-wrap">
+        <canvas id="board" width="500" height="500" aria-label="game board"></canvas>
+      </section>
+
+      <section class="controls">
+        <button id="toggleSkill">技能加伤: 关闭</button>
+        <button id="endTurn">确认行动并结束回合</button>
+        <button id="restart">重新开始</button>
+      </section>
+
+      <section>
+        <h3>事件日志</h3>
+        <ul id="events"></ul>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
