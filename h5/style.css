@@ -1,0 +1,74 @@
+:root {
+  --bg: #0f1220;
+  --panel: #1a1f36;
+  --text: #e7ebff;
+  --accent: #58b7ff;
+  --accent2: #ff8c66;
+  --ok: #40d48a;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(circle at top, #1e274a, var(--bg));
+  color: var(--text);
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.subtitle {
+  opacity: 0.9;
+}
+
+.hud,
+.controls,
+.board-wrap,
+section {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.board-wrap {
+  display: grid;
+  place-items: center;
+}
+
+#board {
+  background: #101426;
+  border: 2px solid #2f3a70;
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+button {
+  background: #2f3a70;
+  border: none;
+  color: var(--text);
+  padding: 10px 14px;
+  margin-right: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+
+#events {
+  margin: 0;
+  padding-left: 20px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.player { color: var(--accent); }
+.bot { color: var(--accent2); }
+.win { color: var(--ok); font-weight: 700; }
