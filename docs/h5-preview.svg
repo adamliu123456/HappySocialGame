@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e274a"/>
+      <stop offset="100%" stop-color="#0f1220"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="560" fill="url(#bg)"/>
+  <rect x="30" y="20" width="840" height="60" rx="12" fill="#1a1f36"/>
+  <text x="50" y="58" fill="#e7ebff" font-size="28" font-family="sans-serif">HappySocialGame - H5 可玩版（预览）</text>
+
+  <rect x="30" y="95" width="540" height="430" rx="12" fill="#1a1f36"/>
+  <rect x="600" y="95" width="270" height="430" rx="12" fill="#1a1f36"/>
+
+  <g transform="translate(50,115)">
+    <rect width="500" height="500" fill="#101426" stroke="#2f3a70" stroke-width="2"/>
+    <g stroke="#33407a">
+      <line x1="100" y1="0" x2="100" y2="500"/><line x1="200" y1="0" x2="200" y2="500"/>
+      <line x1="300" y1="0" x2="300" y2="500"/><line x1="400" y1="0" x2="400" y2="500"/>
+      <line x1="0" y1="100" x2="500" y2="100"/><line x1="0" y1="200" x2="500" y2="200"/>
+      <line x1="0" y1="300" x2="500" y2="300"/><line x1="0" y1="400" x2="500" y2="400"/>
+    </g>
+    <circle cx="250" cy="250" r="12" fill="#3cc07c"/>
+    <circle cx="150" cy="350" r="12" fill="#3cc07c"/>
+    <circle cx="350" cy="150" r="12" fill="#3cc07c"/>
+
+    <circle cx="50" cy="50" r="22" fill="#58b7ff"/><text x="50" y="55" text-anchor="middle" fill="#0f1220" font-weight="bold">S</text>
+    <circle cx="50" cy="150" r="22" fill="#58b7ff"/><text x="50" y="155" text-anchor="middle" fill="#0f1220" font-weight="bold">B</text>
+    <circle cx="450" cy="450" r="22" fill="#ff8c66"/><text x="450" y="455" text-anchor="middle" fill="#0f1220" font-weight="bold">s</text>
+    <circle cx="450" cy="350" r="22" fill="#ff8c66"/><text x="450" y="355" text-anchor="middle" fill="#0f1220" font-weight="bold">b</text>
+  </g>
+
+  <text x="620" y="130" fill="#e7ebff" font-size="22">比分: 你 0 - 0 机器人</text>
+  <text x="620" y="165" fill="#e7ebff" font-size="18">回合: 1 / 12</text>
+  <text x="620" y="200" fill="#e7ebff" font-size="16">状态: 点击单位后选择目标格</text>
+  <text x="620" y="250" fill="#58b7ff" font-size="16">- you 移动到 (2,0)</text>
+  <text x="620" y="280" fill="#ff8c66" font-size="16">- bot 占领据点 (1,3) +1</text>
+  <text x="620" y="310" fill="#40d48a" font-size="16">- 对局进行中...</text>
+</svg>

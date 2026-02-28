@@ -19,6 +19,11 @@ python3 -m http.server 8000
 
 - `http://localhost:8000/h5/`
 
+
+### H5 界面预览（仓库内置，避免截图链接失效）
+
+![H5 预览](./docs/h5-preview.svg)
+
 ### H5 玩法
 
 - 你 vs 机器人，5x5 棋盘回合制
